@@ -1,0 +1,19 @@
+name: lakeIce-env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - r-base=4.3
+  - r-rsyncrosim
+  - r-sf
+  - r-terra
+  - r-tidyverse
+  - r-lubridate
+  - r-ggplot2
+  - r-dplyr
+  - r-tidyr
+  - r-randomforest
+  - gdal
+  - proj
+  - geos
+  - udunits2

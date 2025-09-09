@@ -5,7 +5,8 @@
     displayName="Lake Ice Predictor" 
     version="1.0.0"
     description="Predicts lake ice on and ice off patterns using pre-trained models for a given study area and time period" 
-    minSyncroSimVersion="3.1.9">
+    url="https://github.com/yourusername/lakeIcePredictor" 
+    minSyncroSimVersion="3.1.0">
 
     <!--Project Level-->
     <dataSheet name="Settings" isSingleRow="True" dataScope="Project">
@@ -34,27 +35,27 @@
 
     <!--Output-->
     <dataSheet name="IceOnPredictions" displayName="Ice On Predictions">
-        <column name="LAKEID" dataType="Integer" displayName="Lake ID"/>
+        <column name="lakeId" dataType="Integer" displayName="Lake ID"/>
         <column name="year" dataType="Integer" displayName="Year"/>
         <column name="latitude" dataType="Double" displayName="Latitude"/>
         <column name="longitude" dataType="Double" displayName="Longitude"/>
-        <column name="ice_on_doy" dataType="Double" displayName="Ice on day of year"/>
+        <column name="iceOnDoy" dataType="Double" displayName="Ice on day of year"/>
         <column name="tmpWinter" dataType="Double" displayName="Winter temperature (°C)"/>
         <column name="preWinter" dataType="Double" displayName="Winter precipitation (mm)"/>
-        <column name="Lake_area" dataType="Double" displayName="Lake area (km²)"/>
-        <column name="Depth_avg" dataType="Double" displayName="Average depth (m)"/>
+        <column name="lakeArea" dataType="Double" displayName="Lake area (km²)"/>
+        <column name="depthAvg" dataType="Double" displayName="Average depth (m)"/>
     </dataSheet>
 
     <dataSheet name="IceOffPredictions" displayName="Ice Off Predictions">
-        <column name="LAKEID" dataType="Integer" displayName="Lake ID"/>
+        <column name="lakeId" dataType="Integer" displayName="Lake ID"/>
         <column name="year" dataType="Integer" displayName="Year"/>
         <column name="latitude" dataType="Double" displayName="Latitude"/>
         <column name="longitude" dataType="Double" displayName="Longitude"/>
-        <column name="ice_off_doy" dataType="Double" displayName="Ice off day of year"/>
+        <column name="iceOffDoy" dataType="Double" displayName="Ice off day of year"/>
         <column name="tmpSpring" dataType="Double" displayName="Spring temperature (°C)"/>
         <column name="preSpring" dataType="Double" displayName="Spring precipitation (mm)"/>
-        <column name="Lake_area" dataType="Double" displayName="Lake area (km²)"/>
-        <column name="Depth_avg" dataType="Double" displayName="Average depth (m)"/>
+        <column name="lakeArea" dataType="Double" displayName="Lake area (km²)"/>
+        <column name="depthAvg" dataType="Double" displayName="Average depth (m)"/>
     </dataSheet>
 
     <dataSheet name="SummaryStatistics" displayName="Summary Statistics">
@@ -78,8 +79,8 @@
         name="PredictLakeIce" 
         displayName="Predict Lake Ice" 
         programName="Rscript" 
-        programArguments="predict-lake-ice.R" 
-        condaEnv="lakeIce-conda.yml" 
+        programArguments="predictLakeIce.R" 
+        condaEnv="lakeIceCondaEnv.yml" 
         condaEnvVersion="1.0">
         <dataSheet name="Settings" type="Input"/>
         <dataSheet name="StudyAreaInput" type="Input"/>
@@ -113,19 +114,19 @@
 
     <!--Chart Layout-->
     <layout type="Chart">
-        <group name="IceTimingCharts" displayName="Ice Timing">
-            <item name="iceOnTrend" displayName="Ice On Trend" dataSheet="SummaryStatistics" filter="metric:mean_ice_on_doy" column="value" xColumn="year"/>
-            <item name="iceOffTrend" displayName="Ice Off Trend" dataSheet="SummaryStatistics" filter="metric:mean_ice_off_doy" column="value" xColumn="year"/>
-            <item name="iceDuration" displayName="Ice Duration" dataSheet="SummaryStatistics" filter="metric:mean_ice_duration" column="value" xColumn="year"/>
+        <group name="iceTimingCharts" displayName="Ice Timing">
+            <item name="iceOnTrend" displayName="Ice On Trend" dataSheet="SummaryStatistics" filter="metric:meanIceOnDoy" column="value" xColumn="year"/>
+            <item name="iceOffTrend" displayName="Ice Off Trend" dataSheet="SummaryStatistics" filter="metric:meanIceOffDoy" column="value" xColumn="year"/>
+            <item name="iceDuration" displayName="Ice Duration" dataSheet="SummaryStatistics" filter="metric:meanIceDuration" column="value" xColumn="year"/>
         </group>
     </layout>
 
     <!--Image Layout-->
     <layout type="Image">	
-        <item name="IceOnHistogram" displayName="Ice On Distribution" dataSheet="PlotOutputs" filter="plotType:ice_on_histogram" column="plotFile"/>
-        <item name="IceOffHistogram" displayName="Ice Off Distribution" dataSheet="PlotOutputs" filter="plotType:ice_off_histogram" column="plotFile"/>
-        <item name="SpatialPlot" displayName="Spatial Ice Patterns" dataSheet="PlotOutputs" filter="plotType:spatial_ice_patterns" column="plotFile"/>
-        <item name="TrendPlot" displayName="Temporal Trends" dataSheet="PlotOutputs" filter="plotType:temporal_trends" column="plotFile"/>
+        <item name="iceOnHistogram" displayName="Ice On Distribution" dataSheet="PlotOutputs" filter="plotType:iceOnHistogram" column="plotFile"/>
+        <item name="iceOffHistogram" displayName="Ice Off Distribution" dataSheet="PlotOutputs" filter="plotType:iceOffHistogram" column="plotFile"/>
+        <item name="spatialPlot" displayName="Spatial Ice Patterns" dataSheet="PlotOutputs" filter="plotType:spatialIcePatterns" column="plotFile"/>
+        <item name="trendPlot" displayName="Temporal Trends" dataSheet="PlotOutputs" filter="plotType:temporalTrends" column="plotFile"/>
     </layout>
 
     <!--Export Layout-->

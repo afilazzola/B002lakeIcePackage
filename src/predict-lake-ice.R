@@ -1,4 +1,4 @@
-# predict-lake-ice.R
+# predictLakeIce.R
 # Lake Ice Prediction Transformer for SyncroSim
 
 # Load required libraries
@@ -415,26 +415,26 @@ tryCatch(
       if (nrow(iceOnOutput) > 0) {
         iceOnSpatial <- lakesStudyArea %>%
           select(Hylak_id) %>%
-          left_join(iceOnOutput %>% rename(Hylak_id = LAKEID), by = "Hylak_id")
+          left_join(iceOnOutput %>% rename(Hylak_id = lakeId), by = "Hylak_id")
 
-        ice_on_shp <- file.path(tempdir(), "ice_on_predictions.shp")
-        st_write(iceOnSpatial, ice_on_shp, quiet = TRUE)
+        iceOnShp <- file.path(tempdir(), "iceOnPredictions.shp")
+        st_write(iceOnSpatial, iceOnShp, quiet = TRUE)
         spatialOutputs <- rbind(
           spatialOutputs,
-          data.frame(outputType = "ice_on_shapefile", outputFile = ice_on_shp)
+          data.frame(outputType = "iceOnShapefile", outputFile = iceOnShp)
         )
       }
 
       if (nrow(iceOffOutput) > 0) {
         iceOffSpatial <- lakesStudyArea %>%
           select(Hylak_id) %>%
-          left_join(iceOffOutput %>% rename(Hylak_id = LAKEID), by = "Hylak_id")
+          left_join(iceOffOutput %>% rename(Hylak_id = lakeId), by = "Hylak_id")
 
-        ice_off_shp <- file.path(tempdir(), "ice_off_predictions.shp")
-        st_write(iceOffSpatial, ice_off_shp, quiet = TRUE)
+        iceOffShp <- file.path(tempdir(), "iceOffPredictions.shp")
+        st_write(iceOffSpatial, iceOffShp, quiet = TRUE)
         spatialOutputs <- rbind(
           spatialOutputs,
-          data.frame(outputType = "ice_off_shapefile", outputFile = ice_off_shp)
+          data.frame(outputType = "iceOffShapefile", outputFile = iceOffShp)
         )
       }
     }
@@ -442,20 +442,20 @@ tryCatch(
     if (modelOptions$outputFormat %in% c(0, 2)) {
       # Create CSV outputs
       if (nrow(iceOnOutput) > 0) {
-        ice_on_csv <- file.path(tempdir(), "ice_on_predictions.csv")
-        write.csv(iceOnOutput, ice_on_csv, row.names = FALSE)
+        iceOnCsv <- file.path(tempdir(), "iceOnPredictions.csv")
+        write.csv(iceOnOutput, iceOnCsv, row.names = FALSE)
         spatialOutputs <- rbind(
           spatialOutputs,
-          data.frame(outputType = "ice_on_csv", outputFile = ice_on_csv)
+          data.frame(outputType = "iceOnCsv", outputFile = iceOnCsv)
         )
       }
 
       if (nrow(iceOffOutput) > 0) {
-        ice_off_csv <- file.path(tempdir(), "ice_off_predictions.csv")
-        write.csv(iceOffOutput, ice_off_csv, row.names = FALSE)
+        iceOffCsv <- file.path(tempdir(), "iceOffPredictions.csv")
+        write.csv(iceOffOutput, iceOffCsv, row.names = FALSE)
         spatialOutputs <- rbind(
           spatialOutputs,
-          data.frame(outputType = "ice_off_csv", outputFile = ice_off_csv)
+          data.frame(outputType = "iceOffCsv", outputFile = iceOffCsv)
         )
       }
     }
