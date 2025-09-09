@@ -1,151 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <package 
-    name="lakeIcePredictor" 
-    displayName="Lake Ice Predictor" 
+    name="lakeIcePrediction" 
+    displayName="Lake Ice Prediction" 
     version="1.0.0"
-    description="Predicts lake ice on and ice off patterns using pre-trained models for a given study area and time period" 
-    url="https://github.com/yourusername/lakeIcePredictor" 
-    minSyncroSimVersion="3.1.0">
-
-    <!--Project Level-->
-    <dataSheet name="Settings" isSingleRow="True" dataScope="Project">
-        <column name="climateDataPath" dataType="String" displayName="Climate data directory path" isExternalFile="True"/>
-        <column name="lakesDataPath" dataType="String" displayName="HydroLAKES shapefile path" isExternalFile="True"/>
-        <column name="iceOnModelPath" dataType="String" displayName="Ice on model path (.rds)" isExternalFile="True"/>
-        <column name="iceOffModelPath" dataType="String" displayName="Ice off model path (.rds)" isExternalFile="True"/>
-    </dataSheet>
+    description="Predicts lake ice phenology and generates visualization plots" 
+    minSyncroSimVersion="3.0.0">
 
     <!--Scenario Level-->
-    <!--Input-->
-    <dataSheet name="StudyAreaInput" displayName="Study Area" isSingleRow="True">
-        <column name="studyAreaShapefile" dataType="String" displayName="Study area shapefile" isExternalFile="True"/>
-        <column name="startYear" dataType="Integer" displayName="Start year" validationType="Datasheet" formula1="1901" formula2="2024"/>
-        <column name="endYear" dataType="Integer" displayName="End year" validationType="Datasheet" formula1="1901" formula2="2024"/>
-        <record columns="startYear|endYear" values="2010|2020"/>
-    </dataSheet>
-
-    <dataSheet name="ModelOptions" displayName="Model Options" isSingleRow="True">
-        <column name="predictIceOn" dataType="Boolean" displayName="Predict ice on dates"/>
-        <column name="predictIceOff" dataType="Boolean" displayName="Predict ice off dates"/>
-        <column name="outputFormat" displayName="Output format" dataType="Integer" validationType="List" formula1="0:CSV|1:Shapefile|2:Both"/>
-        <column name="createPlots" dataType="Boolean" displayName="Create visualization plots"/>
-        <record columns="predictIceOn|predictIceOff|outputFormat|createPlots" values="1|1|2|1"/>
+    <dataSheet name="RunControl" displayName="Run Control" isSingleRow="True">
+        <column name="MinTimestep" dataType="Integer" displayName="Start year"/>
+        <column name="MaxTimestep" dataType="Integer" displayName="End year"/>
+        <column name="StudyAreaShapefile" dataType="String" displayName="Study area shapefile" isExternalFile="True"/>
     </dataSheet>
 
     <!--Output-->
-    <dataSheet name="IceOnPredictions" displayName="Ice On Predictions">
-        <column name="lakeId" dataType="Integer" displayName="Lake ID"/>
-        <column name="year" dataType="Integer" displayName="Year"/>
-        <column name="latitude" dataType="Double" displayName="Latitude"/>
-        <column name="longitude" dataType="Double" displayName="Longitude"/>
-        <column name="iceOnDoy" dataType="Double" displayName="Ice on day of year"/>
-        <column name="tmpWinter" dataType="Double" displayName="Winter temperature (°C)"/>
-        <column name="preWinter" dataType="Double" displayName="Winter precipitation (mm)"/>
-        <column name="lakeArea" dataType="Double" displayName="Lake area (km²)"/>
-        <column name="depthAvg" dataType="Double" displayName="Average depth (m)"/>
+    <dataSheet name="PlotOutputs" displayName="Visualization Plots">
+        <column name="PlotType" dataType="String" displayName="Plot type"/>
+        <column name="PlotFile" dataType="String" displayName="Plot file" isExternalFile="True" isImage="True"/>
     </dataSheet>
 
-    <dataSheet name="IceOffPredictions" displayName="Ice Off Predictions">
-        <column name="lakeId" dataType="Integer" displayName="Lake ID"/>
-        <column name="year" dataType="Integer" displayName="Year"/>
-        <column name="latitude" dataType="Double" displayName="Latitude"/>
-        <column name="longitude" dataType="Double" displayName="Longitude"/>
-        <column name="iceOffDoy" dataType="Double" displayName="Ice off day of year"/>
-        <column name="tmpSpring" dataType="Double" displayName="Spring temperature (°C)"/>
-        <column name="preSpring" dataType="Double" displayName="Spring precipitation (mm)"/>
-        <column name="lakeArea" dataType="Double" displayName="Lake area (km²)"/>
-        <column name="depthAvg" dataType="Double" displayName="Average depth (m)"/>
-    </dataSheet>
-
-    <dataSheet name="SummaryStatistics" displayName="Summary Statistics">
-        <column name="year" dataType="Integer" displayName="Year"/>
-        <column name="metric" dataType="String" displayName="Metric"/>
-        <column name="value" dataType="Double" displayName="Value"/>
-    </dataSheet>
-
-    <dataSheet name="PlotOutputs" displayName="Plots">
-        <column name="plotType" dataType="String" displayName="Plot type"/>
-        <column name="plotFile" dataType="String" displayName="Plot file" isExternalFile="True" isImage="True"/>
-    </dataSheet>
-
-    <dataSheet name="SpatialOutputs" displayName="Spatial Outputs">
-        <column name="outputType" dataType="String" displayName="Output type"/>
-        <column name="outputFile" dataType="String" displayName="Output file" isExternalFile="True"/>
-    </dataSheet>
-
-    <!--Transformer: Ice Prediction-->
+    <!--Transformer-->
     <transformer 
         name="PredictLakeIce" 
-        displayName="Predict Lake Ice" 
+        displayName="Generate Lake Ice Plots" 
         programName="Rscript" 
-        programArguments="predictLakeIce.R" 
-        condaEnv="lakeIceCondaEnv.yml" 
-        condaEnvVersion="1.0">
-        <dataSheet name="Settings" type="Input"/>
-        <dataSheet name="StudyAreaInput" type="Input"/>
-        <dataSheet name="ModelOptions" type="Input"/>
-        <dataSheet name="IceOnPredictions" type="Output"/>
-        <dataSheet name="IceOffPredictions" type="Output"/>
-        <dataSheet name="SummaryStatistics" type="Output"/>
+        programArguments="predictLakeIce.R">
+        <dataSheet name="RunControl" type="Input"/>
         <dataSheet name="PlotOutputs" type="Output"/>
-        <dataSheet name="SpatialOutputs" type="Output"/>
     </transformer>
-
-    <!--Export transformers-->
-    <transformer name="IceOnPredictionsExport" dataSheet="IceOnPredictions" isExport="True"/>
-    <transformer name="IceOffPredictionsExport" dataSheet="IceOffPredictions" isExport="True"/>
-    <transformer name="SummaryStatisticsExport" dataSheet="SummaryStatistics" isExport="True"/>
-    <transformer name="PlotOutputsExport" dataSheet="PlotOutputs" column="plotFile" isExport="True"/>
-    <transformer name="SpatialOutputsExport" dataSheet="SpatialOutputs" column="outputFile" isExport="True"/>
 
     <!--Scenario Layout-->
     <layout type="Scenario">
-        <group name="Inputs" displayName="Inputs">
-            <item name="StudyAreaInput"/>
-            <item name="ModelOptions"/>
-        </group>
-        <group name="Outputs" displayName="Outputs">
-            <item name="IceOnPredictions"/>
-            <item name="IceOffPredictions"/>
-            <item name="SummaryStatistics"/>
-        </group>
-    </layout>
-
-    <!--Chart Layout-->
-    <layout type="Chart">
-        <group name="iceTimingCharts" displayName="Ice Timing">
-            <item name="iceOnTrend" displayName="Ice On Trend" dataSheet="SummaryStatistics" filter="metric:meanIceOnDoy" column="value" xColumn="year"/>
-            <item name="iceOffTrend" displayName="Ice Off Trend" dataSheet="SummaryStatistics" filter="metric:meanIceOffDoy" column="value" xColumn="year"/>
-            <item name="iceDuration" displayName="Ice Duration" dataSheet="SummaryStatistics" filter="metric:meanIceDuration" column="value" xColumn="year"/>
-        </group>
+        <item name="RunControl"/>
     </layout>
 
     <!--Image Layout-->
-    <layout type="Image">	
-        <item name="iceOnHistogram" displayName="Ice On Distribution" dataSheet="PlotOutputs" filter="plotType:iceOnHistogram" column="plotFile"/>
-        <item name="iceOffHistogram" displayName="Ice Off Distribution" dataSheet="PlotOutputs" filter="plotType:iceOffHistogram" column="plotFile"/>
-        <item name="spatialPlot" displayName="Spatial Ice Patterns" dataSheet="PlotOutputs" filter="plotType:spatialIcePatterns" column="plotFile"/>
-        <item name="trendPlot" displayName="Temporal Trends" dataSheet="PlotOutputs" filter="plotType:temporalTrends" column="plotFile"/>
+  <layout type="Image">	
+        <item name="IceOnHistogram" displayName="Ice On Day Histogram" dataSheet="PlotOutputs" column="PlotFile"/>
+        <item name="IceOffHistogram" displayName="Ice Off Day Histogram" dataSheet="PlotOutputs" column="PlotFile"/>
+        <item name="MapIceOn" displayName="Map - Average Ice On Day" dataSheet="PlotOutputs" column="PlotFile"/>
+        <item name="MapIceOff" displayName="Map - Average Ice Off Day" dataSheet="PlotOutputs" column="PlotFile"/>
     </layout>
 
-    <!--Export Layout-->
-    <layout type="Export">
-        <group name="TableExports" displayName="Table Outputs">
-            <item name="IceOnPredictionsExport" displayName="Ice On Predictions"/>
-            <item name="IceOffPredictionsExport" displayName="Ice Off Predictions"/>
-            <item name="SummaryStatisticsExport" displayName="Summary Statistics"/>
-        </group>
-        <group name="SpatialExports" displayName="Spatial Outputs">
-            <item name="SpatialOutputsExport" displayName="Shapefiles"/>
-        </group>
-        <group name="PlotExports" displayName="Plot Outputs">
-            <item name="PlotOutputsExport" displayName="Plots"/>
-        </group>
-    </layout>
-
-    <updateProvider
-        className="SyncroSim.Core.XMLUpdateProvider"
-        classAssembly="SyncroSim.Core" />
+  
         
 </package>
