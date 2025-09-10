@@ -30,13 +30,27 @@ CLIMATE_DATA_PATH <- paste0(packageDir, "/../data/climate/")
 ICE_ON_MODEL_PATH <- paste0(packageDir, "/../models/iceOnModel.rds")
 ICE_OFF_MODEL_PATH <- paste0(packageDir, "/../models/iceOffModel.rds")
 
-# Function to extract climate data
-getClimateData <- function(data, climateRasters) {
+
+# More efficient climate data extraction
+getClimateData <- function(data, climateRasters, startYear, endYear) {
   tmp <- rast(grep("tmp.dat.nc", climateRasters, value = TRUE))
   pre <- rast(grep("pre.dat.nc", climateRasters, value = TRUE))
 
   coords <- data %>% select("LAKEID", "longitude", "latitude") %>% distinct()
 
+  # Calculate which layers we need (with buffer for winter/spring calculations)
+  startMonth <- ((startYear - 1) - 1901) * 12 + 9 # September of year before
+  endMonth <- ((endYear + 1) - 1901) * 12 + 5 # May of year after
+
+  # Ensure we stay within bounds
+  startMonth <- max(1, startMonth)
+  endMonth <- min(nlyr(tmp), endMonth)
+
+  # Subset to needed layers
+  tmp <- subset(tmp, startMonth:endMonth)
+  pre <- subset(pre, startMonth:endMonth)
+
+  # Crop to study area
   ext <- ext(
     min(coords[["longitude"]]) - 1,
     max(coords[["longitude"]]) + 1,
@@ -46,41 +60,54 @@ getClimateData <- function(data, climateRasters) {
   tmp <- crop(tmp, ext)
   pre <- crop(pre, ext)
 
+  # Extract values
   tmpValues <- terra::extract(
     tmp,
     as.matrix(coords[, c("longitude", "latitude")])
   )
-  tmpValuesCoords <- cbind(coords, tmpValues[, 1:1476])
-  tmpValuesLong <- tmpValuesCoords %>%
-    gather(4:ncol(tmpValuesCoords), key = "timestep", value = "tmp") %>%
-    mutate(
-      date = rep(
-        seq.Date(as.Date("1901-01-01"), as.Date("2023-12-31"), by = "month"),
-        nrow(tmpValuesCoords)
-      )
-    )
-
   preValues <- terra::extract(
     pre,
     as.matrix(coords[, c("longitude", "latitude")])
   )
-  preValuesCoords <- cbind(coords, preValues[, 1:1476])
+
+  # Get actual number of layers extracted
+  nLayers <- ncol(tmpValues) - 1 # Subtract 1 for ID column
+
+  # Bind coordinates with values (excluding ID column)
+  tmpValuesCoords <- cbind(coords, tmpValues[, 2:(nLayers + 1)])
+  preValuesCoords <- cbind(coords, preValues[, 2:(nLayers + 1)])
+
+  # Create appropriate date sequence
+  startDate <- as.Date("1901-01-01") %m+% months(startMonth - 1)
+  dates <- seq.Date(startDate, length.out = nLayers, by = "month")
+
+  # Reshape temperature data
+  tmpValuesLong <- tmpValuesCoords %>%
+    gather(4:ncol(tmpValuesCoords), key = "timestep", value = "tmp") %>%
+    mutate(
+      date = rep(dates, nrow(coords))
+    )
+
+  # Reshape precipitation data
   preValuesLong <- preValuesCoords %>%
     gather(4:ncol(preValuesCoords), key = "timestep", value = "pre") %>%
     mutate(
-      date = rep(
-        seq.Date(as.Date("1901-01-01"), as.Date("2023-12-31"), by = "month"),
-        nrow(preValuesCoords)
-      )
+      date = rep(dates, nrow(coords))
     )
 
+  # Combine and add year/month
   climateValues <- cbind(tmpValuesLong, pre = preValuesLong$pre) %>%
     select(-timestep)
-  climateValues[, "year"] <- as.numeric(format(climateValues$date, "%Y"))
-  climateValues[, "month"] <- as.numeric(format(climateValues$date, "%m"))
+  climateValues$year <- year(climateValues$date)
+  climateValues$month <- month(climateValues$date)
 
-  return(climateValues)
+  # Return only the years needed (with buffer for calculations)
+  return(
+    climateValues %>%
+      filter(year >= (startYear - 1) & year <= (endYear + 1))
+  )
 }
+
 
 # Main processing
 tryCatch(
@@ -120,8 +147,12 @@ tryCatch(
       pattern = ".nc",
       recursive = TRUE
     )
-    lakesClimate <- getClimateData(lakesData, climateRasters)
-    lakesClimate <- lakesClimate %>% filter(year >= startYear & year <= endYear)
+    lakesClimate <- getClimateData(
+      lakesData,
+      climateRasters,
+      startYear,
+      endYear
+    )
 
     # Predict ice on
     iceOnModel <- readRDS(ICE_ON_MODEL_PATH)
