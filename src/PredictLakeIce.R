@@ -84,16 +84,12 @@ getClimateData <- function(data, climateRasters, startYear, endYear) {
   # Reshape temperature data
   tmpValuesLong <- tmpValuesCoords %>%
     gather(4:ncol(tmpValuesCoords), key = "timestep", value = "tmp") %>%
-    mutate(
-      date = rep(dates, nrow(coords))
-    )
+    mutate(date = rep(dates, nrow(coords)))
 
   # Reshape precipitation data
   preValuesLong <- preValuesCoords %>%
     gather(4:ncol(preValuesCoords), key = "timestep", value = "pre") %>%
-    mutate(
-      date = rep(dates, nrow(coords))
-    )
+    mutate(date = rep(dates, nrow(coords)))
 
   # Combine and add year/month
   climateValues <- cbind(tmpValuesLong, pre = preValuesLong$pre) %>%
@@ -103,8 +99,7 @@ getClimateData <- function(data, climateRasters, startYear, endYear) {
 
   # Return only the years needed (with buffer for calculations)
   return(
-    climateValues %>%
-      filter(year >= (startYear - 1) & year <= (endYear + 1))
+    climateValues %>% filter(year >= (startYear - 1) & year <= (endYear + 1))
   )
 }
 
@@ -196,7 +191,12 @@ tryCatch(
     )
 
     # Initialize output dataframe
-    plotOutputs <- data.frame()
+    plotOutputs <- data.frame(
+      IceOnHistogram = NA,
+      IceOffHistogram = NA,
+      MapIceOn = NA,
+      MapIceOff = NA
+    )
 
     # Create Plot 1: Ice On Histogram
     p1 <- ggplot(lakesIceOnMorpho, aes(x = iceOnDoy)) +
@@ -216,10 +216,7 @@ tryCatch(
 
     iceOnHistFile <- file.path(transferDir, "IceOnHistogram.png")
     ggsave(iceOnHistFile, p1, width = 8, height = 6, dpi = 300)
-    plotOutputs <- rbind(
-      plotOutputs,
-      data.frame(PlotType = "IceOnHistogram", PlotFile = iceOnHistFile)
-    )
+    plotOutputs$IceOnHistogram <- iceOnHistFile
 
     # Create Plot 2: Ice Off Histogram
     p2 <- ggplot(lakesIceOffMorpho, aes(x = iceOffDoy)) +
@@ -234,10 +231,7 @@ tryCatch(
 
     iceOffHistFile <- file.path(transferDir, "IceOffHistogram.png")
     ggsave(iceOffHistFile, p2, width = 8, height = 6, dpi = 300)
-    plotOutputs <- rbind(
-      plotOutputs,
-      data.frame(PlotType = "IceOffHistogram", PlotFile = iceOffHistFile)
-    )
+    plotOutputs$IceOffHistogram <- iceOffHistFile
 
     # Create Plot 3: Map of Average Ice On
     avgIceOnSummary <- lakesIceOnMorpho %>%
@@ -267,10 +261,7 @@ tryCatch(
 
     mapIceOnFile <- file.path(transferDir, "MapIceOn.png")
     ggsave(mapIceOnFile, p3, width = 10, height = 8, dpi = 300)
-    plotOutputs <- rbind(
-      plotOutputs,
-      data.frame(PlotType = "MapIceOn", PlotFile = mapIceOnFile)
-    )
+    plotOutputs$MapIceOn <- mapIceOnFile
 
     # Create Plot 4: Map of Average Ice Off
     avgIceOffSummary <- lakesIceOffMorpho %>%
@@ -300,10 +291,7 @@ tryCatch(
 
     mapIceOffFile <- file.path(transferDir, "MapIceOff.png")
     ggsave(mapIceOffFile, p4, width = 10, height = 8, dpi = 300)
-    plotOutputs <- rbind(
-      plotOutputs,
-      data.frame(PlotType = "MapIceOff", PlotFile = mapIceOffFile)
-    )
+    plotOutputs$MapIceOff <- mapIceOffFile
 
     # Save outputs to SyncroSim
     saveDatasheet(myScenario, plotOutputs, "lakeIcePrediction_PlotOutputs")

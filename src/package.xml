@@ -16,8 +16,11 @@
 
     <!--Output-->
     <dataSheet name="PlotOutputs" displayName="Visualization Plots">
-        <column name="PlotType" dataType="String" displayName="Plot type"/>
-        <column name="PlotFile" dataType="String" displayName="Plot file" isExternalFile="True" isImage="True"/>
+           <column name="IceOnHistogram" dataType="String" displayName="Ice On Histogram" isExternalFile="True" isImage="True"/>
+           <column name="IceOffHistogram" dataType="String" displayName="Ice Off Histogram" isExternalFile="True" isImage="True"/>
+           <column name="MapIceOn" dataType="String" displayName="Map - Average Ice On Day" isExternalFile="True" isImage="True"/>
+           <column name="MapIceOff" dataType="String" displayName="Map - Average Ice Off Day" isExternalFile="True" isImage="True"/>
+
     </dataSheet>
 
     <!--Transformer-->
@@ -37,10 +40,10 @@
 
     <!--Image Layout-->
   <layout type="Image">	
-        <item name="IceOnHistogram" displayName="Ice On Day Histogram" dataSheet="PlotOutputs" column="PlotFile"/>
-        <item name="IceOffHistogram" displayName="Ice Off Day Histogram" dataSheet="PlotOutputs" column="PlotFile"/>
-        <item name="MapIceOn" displayName="Map - Average Ice On Day" dataSheet="PlotOutputs" column="PlotFile"/>
-        <item name="MapIceOff" displayName="Map - Average Ice Off Day" dataSheet="PlotOutputs" column="PlotFile"/>
+        <item name="IceOnHistogram" displayName="Ice On Day Histogram" dataSheet="PlotOutputs" column="IceOnHistogram"/>
+        <item name="IceOffHistogram" displayName="Ice Off Day Histogram" dataSheet="PlotOutputs" column="IceOffHistogram"/>
+        <item name="MapIceOn" displayName="Map - Average Ice On Day" dataSheet="PlotOutputs" column="MapIceOn"/>
+        <item name="MapIceOff" displayName="Map - Average Ice Off Day" dataSheet="PlotOutputs" column="MapIceOff"/>
     </layout>
 
   
