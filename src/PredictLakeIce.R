@@ -175,7 +175,7 @@ tryCatch(
         alpha = 0.7,
         color = "white"
       ) +
-      theme_minimal() +
+      theme_classic() +
       labs(
         title = "Ice On Day Distribution",
         x = "Day of Year",
@@ -193,7 +193,7 @@ tryCatch(
     # Create Plot 2: Ice Off Histogram
     p2 <- ggplot(lakesIceOffMorpho, aes(x = iceOffDoy)) +
       geom_histogram(bins = 30, fill = "coral", alpha = 0.7, color = "white") +
-      theme_minimal() +
+      theme_classic() +
       labs(
         title = "Ice Off Day Distribution",
         x = "Day of Year",
@@ -209,27 +209,30 @@ tryCatch(
     )
 
     # Create Plot 3: Map of Average Ice On
-    avgIceOn <- lakesIceOnMorpho %>%
-      group_by(LAKEID, latitude, longitude) %>%
+    avgIceOnSummary <- lakesIceOnMorpho %>%
+      group_by(Hylak_id = LAKEID) %>%
       summarise(avgIceOn = mean(iceOnDoy, na.rm = TRUE), .groups = 'drop')
 
-    p3 <- ggplot(avgIceOn, aes(x = longitude, y = latitude)) +
-      geom_point(aes(color = avgIceOn), size = 3, alpha = 0.8) +
-      scale_color_gradient2(
+    avgIceOn <- lakesStudyArea %>%
+      left_join(avgIceOnSummary, by = "Hylak_id") %>%
+      st_as_sf()
+
+    p3 <- ggplot(avgIceOn) +
+      geom_sf(aes(fill = avgIceOn), size = 3, alpha = 0.8) +
+      scale_fill_gradient2(
         low = "blue",
         mid = "yellow",
         high = "red",
         midpoint = mean(avgIceOn$avgIceOn),
         name = "Avg Ice On\n(Day of Year)"
       ) +
-      theme_minimal() +
+      theme_classic() +
       labs(
         title = "Average Ice On Day by Lake",
         x = "Longitude",
         y = "Latitude"
       ) +
-      theme(plot.title = element_text(size = 14, face = "bold")) +
-      coord_equal()
+      theme(plot.title = element_text(size = 14, face = "bold"))
 
     mapIceOnFile <- file.path(transferDir, "MapIceOn.png")
     ggsave(mapIceOnFile, p3, width = 10, height = 8, dpi = 300)
@@ -239,27 +242,30 @@ tryCatch(
     )
 
     # Create Plot 4: Map of Average Ice Off
-    avgIceOff <- lakesIceOffMorpho %>%
-      group_by(LAKEID, latitude, longitude) %>%
+    avgIceOffSummary <- lakesIceOffMorpho %>%
+      group_by(Hylak_id = LAKEID) %>%
       summarise(avgIceOff = mean(iceOffDoy, na.rm = TRUE), .groups = 'drop')
 
-    p4 <- ggplot(avgIceOff, aes(x = longitude, y = latitude)) +
-      geom_point(aes(color = avgIceOff), size = 3, alpha = 0.8) +
-      scale_color_gradient2(
+    avgIceOff <- lakesStudyArea %>%
+      left_join(avgIceOffSummary, by = "Hylak_id") %>%
+      st_as_sf()
+
+    p4 <- ggplot(avgIceOff) +
+      geom_sf(aes(fill = avgIceOff), size = 3, alpha = 0.8) +
+      scale_fill_gradient2(
         low = "blue",
         mid = "yellow",
         high = "red",
         midpoint = mean(avgIceOff$avgIceOff),
         name = "Avg Ice Off\n(Day of Year)"
       ) +
-      theme_minimal() +
+      theme_classic() +
       labs(
         title = "Average Ice Off Day by Lake",
         x = "Longitude",
         y = "Latitude"
       ) +
-      theme(plot.title = element_text(size = 14, face = "bold")) +
-      coord_equal()
+      theme(plot.title = element_text(size = 14, face = "bold"))
 
     mapIceOffFile <- file.path(transferDir, "MapIceOff.png")
     ggsave(mapIceOffFile, p4, width = 10, height = 8, dpi = 300)
